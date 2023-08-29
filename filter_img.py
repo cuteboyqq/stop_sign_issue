@@ -12,7 +12,8 @@ import numpy as np
 def FilterImg(img_dir,
               save_dir,
               mask=True,
-              stop_sign=False):
+              stop_sign=False,
+              equalize=True):
     os.makedirs(os.path.join(save_dir,"roi"),exist_ok=True)
     os.makedirs(os.path.join(save_dir,"mask"),exist_ok=True)
     c = 1
@@ -41,13 +42,23 @@ def FilterImg(img_dir,
 
                 if stop_sign:
                     #_,img_binary = cv2.threshold(img_gray,img_gray_mean+10,255,cv2.THRESH_BINARY_INV)
-                    img_binary = np.zeros(img.shape,np.uint8)
-                    for i in range(img.shape[0]):
-                        for j in range(img.shape[1]):
-                            if img[i][j][2] > img_gray_mean and img[i][j][0]<img_gray_mean/2.0 and img[i][j][1]<img_gray_mean/2.0:
-                                img_binary[i][j]=255
-                            else:
-                                img_binary[i][j]=0
+                    # img_binary = np.zeros(img.shape,np.uint8)
+                    # for i in range(img.shape[0]):
+                    #     for j in range(img.shape[1]):
+                    #         if img[i][j][2] > img_gray_mean and img[i][j][0]<img_gray_mean/2.0 and img[i][j][1]<img_gray_mean/2.0:
+                    #             img_binary[i][j]=255
+                    #         else:
+                    #             img_binary[i][j]=0
+                    _,img_binary = cv2.threshold(img_gray,img_gray_mean,255,cv2.THRESH_BINARY_INV)
+                    kernel = np.ones((3,3), np.uint8)
+                    img_binary = cv2.dilate(img_binary, kernel, iterations = 10)
+                    img_binary = cv2.erode(img_binary, kernel, iterations = 10)
+                    #contours, hierarchy = cv2.findContours(img_binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                    #mask_img = np.zeros(img.shape, np.uint8)
+                    #mask_img = np.zeros(img.shape, img.types)
+                    #cv2.drawContours(mask_img, contours, -1, (255,255,255))
+
+
                 else:
                     _,img_binary = cv2.threshold(img_gray,img_gray_mean+10,255,0)
 
@@ -60,7 +71,7 @@ def FilterImg(img_dir,
                 mask_dir = os.path.join(save_dir,"mask")
                 cv2.imwrite(mask_dir+"/"+file,img_binary)
                 print("{}:Save mask".format(c))
-                equalize=False
+                #equalize=False
                 if equalize:
                     if img_gray_mean/1.0 +50 <=255:
                         img_tmp = int(img_gray_mean/1.0 + 50) * np.ones((int(img.shape[0]),int(img.shape[1]), 3), dtype=np.uint8)
@@ -128,4 +139,5 @@ if __name__=="__main__":
     FilterImg(img_dir,
               save_dir, 
               mask=True,
-              stop_sign=stop_sign)
+              stop_sign=stop_sign,
+              equalize=False)
