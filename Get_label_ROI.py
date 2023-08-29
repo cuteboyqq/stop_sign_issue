@@ -12,10 +12,12 @@ def xywh2xyxy(line,normalize=True):
     
     return NotImplemented
 
-def Analysis_yolo_txt(label_path,
-                      img_h,
-                      img_w,
-                      args):
+def Analysis_yolo_txt(img_path=None,
+                      label_path=None,
+                      img_h=None,
+                      img_w=None,
+                      save_img=False,
+                      args=None):
     wanted_label_xywh_list = []
     #wanted_label_xywh_list put [[int x,int y,int w,int h],...]
     if os.path.exists(label_path):
@@ -38,6 +40,11 @@ def Analysis_yolo_txt(label_path,
                         w = int(float(parse_line[3])*img_w) # un-normalize w
                         h = int(float(parse_line[4])*img_h) # un-normalize h
                         wanted_label_xywh_list.append([x,y,w,h])
+                        if save_img:
+                            save_img_dir = os.path.join(args.save_dir,"images")
+                            os.makedirs(save_img_dir,exist_ok=True)
+                            shutil.copy(img_path,save_img_dir)
+
             l_f.close()
     else:
         print("[Error] label_path not found !")
@@ -62,10 +69,12 @@ def Get_Secific_Label_ROI_Imgs(args=None):
         #print("label : {}".format(label))
         #print(args.label_dir)
         #print(label_path)
-        wanted_label_xywh_list = Analysis_yolo_txt(label_path,
-                                    img_h,
-                                    img_w,
-                                    args)
+        wanted_label_xywh_list = Analysis_yolo_txt(img_path=img_path,
+                                    label_path=label_path,
+                                    img_h=img_h,
+                                    img_w=img_w,
+                                    save_img=True,
+                                    args=args)
         #print(wanted_label_xywh_list)
 
         for i in range(len(wanted_label_xywh_list)):
@@ -99,7 +108,7 @@ def get_args():
     parser.add_argument("-imgdir","--img-dir",help="image directory",default="/home/ali/Projects/GitHub_Code/YOLO/datasets/coco/images/train2017")
     parser.add_argument("-labeldir","--label-dir",help="label directory",default="/home/ali/Projects/GitHub_Code/YOLO/datasets/coco/labels/train2017")
     parser.add_argument("-wantedlabel","--wanted-label",type = int, help="wanted label (int cls)",default=11)
-    parser.add_argument("-savedir","--save-dir",help="save roi directory",default="/home/ali/Projects/GitHub_Code/ali/landmark_issue/stop_sign")
+    parser.add_argument("-savedir","--save-dir",help="save roi directory",default="/home/ali/Projects/GitHub_Code/ali/landmark_issue/stop_sign_20230829")
     parser.add_argument("-showimg","--show-img",help="show wanted label images",action='store_true')
     return parser.parse_args()
 
