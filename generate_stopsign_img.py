@@ -215,6 +215,7 @@ def Generate_StopSign_Img(img_path=None,
         USE_OPENCV=False
 
     ## Resize the Stopsign ROI & ROI mask
+    ##Stopsign width/height size is range from 60~180
     if final_roi_w<180 and final_roi_h<180 and\
        final_roi_w>=60 and final_roi_h>=60:
         roi_resize = cv2.resize(roi,(final_roi_w,final_roi_h),interpolation=cv2.INTER_NEAREST)
@@ -306,7 +307,7 @@ def Generate_StopSign_Img(img_path=None,
         label_txt_path=os.path.join(args.label_dir,label_txt)
         if os.path.exists(label_txt_path):
             #input()
-            label = str(11)
+            label = str(10) #stop sign label = 10 replace the traffic sign
             x_cor = final_x_stop_sign
             x = str( int(float( (x_cor) / img.shape[1] )*1000000)/1000000 ) 
             y = str( int(float( (y    ) / img.shape[0] )*1000000)/1000000 )
@@ -323,6 +324,16 @@ def Generate_StopSign_Img(img_path=None,
             shutil.copy(label_txt_path,save_label_txt_dir)
 
             save_label_txt_path = save_label_txt_dir + "/" + label_txt
+            
+            f = open(save_label_txt_path,'a')
+
+            with open(label_txt_path,'r') as f_ori: #original label from bdd100k.txt 
+                lines_ori = f_ori.readlines()
+                for line_ori in lines_ori:
+                    if line_ori.split(" ")[0] != "9":
+                        f.write(line_ori)
+                        f.write("\n")
+            f.close()           
 
             with open(save_label_txt_path,'a') as f:
                 f.write(line)

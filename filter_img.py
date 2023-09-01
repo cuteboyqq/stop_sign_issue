@@ -37,39 +37,42 @@ def FilterImg(img_dir,
                 print(img_gray_mean)
                 #var = ((img_gray - img_gray_mean) ** 2).mean()
                 #std_rgb = np.sqrt(var)
-                
-                
-
                 if stop_sign:
-                    #_,img_binary = cv2.threshold(img_gray,img_gray_mean+10,255,cv2.THRESH_BINARY_INV)
-                    # img_binary = np.zeros(img.shape,np.uint8)
-                    # for i in range(img.shape[0]):
-                    #     for j in range(img.shape[1]):
-                    #         if img[i][j][2] > img_gray_mean and img[i][j][0]<img_gray_mean/2.0 and img[i][j][1]<img_gray_mean/2.0:
-                    #             img_binary[i][j]=255
-                    #         else:
-                    #             img_binary[i][j]=0
                     _,img_binary = cv2.threshold(img_gray,img_gray_mean,255,cv2.THRESH_BINARY_INV)
-                    kernel = np.ones((3,3), np.uint8)
-                    img_binary = cv2.dilate(img_binary, kernel, iterations = 10)
-                    img_binary = cv2.erode(img_binary, kernel, iterations = 10)
-                    #contours, hierarchy = cv2.findContours(img_binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                    #mask_img = np.zeros(img.shape, np.uint8)
-                    #mask_img = np.zeros(img.shape, img.types)
-                    #cv2.drawContours(mask_img, contours, -1, (255,255,255))
-
-
+                    dilate_erode=False
+                    if dilate_erode:
+                        kernel = np.ones((3,3), np.uint8)
+                        img_binary = cv2.dilate(img_binary, kernel, iterations = 10)
+                        img_binary = cv2.erode(img_binary, kernel, iterations = 10)
                 else:
                     _,img_binary = cv2.threshold(img_gray,img_gray_mean+10,255,0)
 
+                #study code from https://cloud.tencent.com/developer/article/1016690
+                if stop_sign:
+                    contours, hierarchy = cv2.findContours(img_binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                    mask_img = np.zeros(img.shape, np.uint8)
+                    #cv2.drawContours(mask_img, contours, -1, (255,255,255),cv2.FILLED)
+                    #cv2.drawContours(mask_img, contours, -1, (255,255,255), 3)
+                    c_max = []
+                    max_area = 0
+                    max_cnt = 0
+                    c_max = []
+                    for i in range(len(contours)):
+                        cnt = contours[i]
+                        area = cv2.contourArea(cnt)
 
-                # if stop_sign:
-                #     contours, hierarchy = cv2.findContours(img_binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                #     mask_img = np.zeros(img.shape, np.uint8)
-                #     cv2.drawContours(mask_img, contours, -1, (255,255,255),cv2.FILLED)
-
+                        # 处理掉小的轮廓区域，这个区域的大小自己定义。
+                        if(area < (h*2/3*w*2/3)):
+                            c_min = []
+                            c_min.append(cnt)
+                            # thickness不为-1时，表示画轮廓线，thickness的值表示线的宽度。
+                            cv2.drawContours(mask_img, c_min, -1, (0,0,0), thickness=-1)
+                            continue
+                        #
+                        c_max.append(cnt)
+                    cv2.drawContours(mask_img, c_max, -1, (255, 255, 255), thickness=-1)
                 mask_dir = os.path.join(save_dir,"mask")
-                cv2.imwrite(mask_dir+"/"+file,img_binary)
+                cv2.imwrite(mask_dir+"/"+file,mask_img)
                 print("{}:Save mask".format(c))
                 #equalize=False
                 if equalize:
@@ -134,7 +137,7 @@ def FilterImg(img_dir,
 
 if __name__=="__main__":
     img_dir = "./stop_sign"
-    save_dir = "./datasets/stop_sign_new"
+    save_dir = "./datasets/stop_sign_new_v87"
     stop_sign = True
     FilterImg(img_dir,
               save_dir, 

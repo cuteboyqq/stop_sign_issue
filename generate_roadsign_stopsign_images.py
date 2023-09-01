@@ -213,14 +213,19 @@ def Generate_StopSign_Img(img_path=None,count=1,args=None):
         USE_OPENCV=False
 
     ##Resize the Stopsign ROI & ROI mask
-    if final_roi_w<180 and final_roi_h<180:
+    if final_roi_w<args.roi_maxwidth and final_roi_w>=64 and final_roi_h<args.roi_maxwidth and final_roi_h>=64:
         roi_resize = cv2.resize(roi,(final_roi_w,final_roi_h),interpolation=cv2.INTER_NEAREST)
         roi_mask = cv2.resize(roi_mask,(final_roi_w,final_roi_h),interpolation=cv2.INTER_NEAREST)
+    elif final_roi_w>=args.roi_maxwidth and final_roi_h>=args.roi_maxwidth:
+        roi_resize = cv2.resize(roi,(250,250),interpolation=cv2.INTER_NEAREST)
+        roi_mask = cv2.resize(roi_mask,(250,250),interpolation=cv2.INTER_NEAREST)
+        final_roi_h=args.roi_maxwidth
+        final_roi_w=args.roi_maxwidth
     else:
-        roi_resize = cv2.resize(roi,(180,180),interpolation=cv2.INTER_NEAREST)
-        roi_mask = cv2.resize(roi_mask,(180,180),interpolation=cv2.INTER_NEAREST)
-        final_roi_h=180
-        final_roi_w=180
+        roi_resize = cv2.resize(roi,(50,50),interpolation=cv2.INTER_NEAREST)
+        roi_mask = cv2.resize(roi_mask,(50,50),interpolation=cv2.INTER_NEAREST)
+        final_roi_h=50
+        final_roi_w=50
 
     print("roi_resize:{}".format(roi_resize.shape))
     print("roi_mask:{}".format(roi_mask.shape))
@@ -297,7 +302,7 @@ def Generate_StopSign_Img(img_path=None,count=1,args=None):
         label_txt_path=os.path.join(args.label_dir,label_txt)
         if os.path.exists(label_txt_path):
             #input()
-            label = str(11)
+            label = str(9) ## Stop sign label is 9, replace the ttraffic sign label
             x_cor = final_x_stop_sign
             x = str( int(float( (x_cor) / img.shape[1] )*1000000)/1000000 ) 
             y = str( int(float( (y    ) / img.shape[0] )*1000000)/1000000 )
@@ -315,6 +320,15 @@ def Generate_StopSign_Img(img_path=None,count=1,args=None):
 
             save_label_txt_path = save_label_txt_dir + "/" + label_txt
 
+            with open(save_label_txt_path,'w') as f:
+                ## remove the traffic sign label
+                with open(label_txt_path,'r') as bdd100k_f:
+                    bdd100k_lines = bdd100k_f.readlines()
+                    for bdd100k_line in bdd100k_lines:
+                        if bdd100k_line.split(" ")[0]!="9": #if not traffic sign label
+                            f.write(bdd100k_line)
+            f.close()
+            ## Add the Stop sign label
             with open(save_label_txt_path,'a') as f:
                 f.write(line)
                 #f.write("\n")
@@ -900,7 +914,7 @@ def Generate_Landmark_Img(img_path=None,
                     label_dir = os.path.join("./fake_landmark_image_test","masks")
                     os.makedirs(label_dir,exist_ok=True)
                     cv2.imwrite("./fake_landmark_image_test/masks/"+label,label_train)
-                    
+
                 if save_colormap:
                     colormap_dir = os.path.join("./fake_landmark_image_test","colormaps")
                     os.makedirs(colormap_dir,exist_ok=True)
@@ -992,16 +1006,17 @@ def get_args_StopSign():
     
     # For StopSign parameter
     parser.add_argument('-roidirstopsign','--roi-dirstopsign',help='roi dir',\
-                        default="/home/ali/Projects/GitHub_Code/ali/landmark_issue/datasets/stop_sign_new_v2/roi")
+                        default="/home/ali/Projects/GitHub_Code/ali/landmark_issue/datasets/stop_sign_new_v87/roi")
     parser.add_argument('-savedir','--save-dir',help='save img dir',default="/home/ali/Projects/GitHub_Code/ali/landmark_issue/stopsign_images")
     parser.add_argument('-saveimg','--save-img',type=bool,default=True,help='save stopsign fake images')
     parser.add_argument('-savetxt','--save-txt',type=bool,default=True,help='save stopsign yolo.txt')
     parser.add_argument('-showimg','--show-img',type=bool,default=False,help='show images result')
     parser.add_argument('-numimg','--num-img',type=int,default=20000,help='number of generate fake landmark images')
+    parser.add_argument('-roimaxwidth','--roi-maxwidth',type=int,default=250,help='max width of stop sign ROI')
     parser.add_argument('-usemask','--use-mask',type=bool,default=True,help='enable(True)/disable(False) mask method to generate landmark or not')
     parser.add_argument('-roimaskdirstopsign','--roi-maskdirstopsign',help='roi mask dir',\
-                        default="/home/ali/Projects/GitHub_Code/ali/landmark_issue/datasets/stop_sign_new_v2/mask")
-    parser.add_argument('-opencv','--opencv',type=bool,default=True,help='enable(True)/disable(False) opencv method to generate landmark or not')
+                        default="/home/ali/Projects/GitHub_Code/ali/landmark_issue/datasets/stop_sign_new_v87/mask")
+    parser.add_argument('-opencv','--opencv',type=bool,default=False,help='enable(True)/disable(False) opencv method to generate landmark or not')
     return parser.parse_args() 
 
 def get_args_RoadSign():
