@@ -1,5 +1,5 @@
 # stop_sign_issue
-[generate_roadsign_stopsign_images.py] This code able to generate stop sign and lane marking at bdd100k dataset images and generate corresponding label.txt for yolo 
+[./generate_roadsign_stopsign_images.py] This code able to generate stop sign and lane marking at bdd100k dataset images and generate corresponding label.txt for yolo 
 
 ### Step 0 : Get Stop Sign ROI  and  lane marking ROI
 
