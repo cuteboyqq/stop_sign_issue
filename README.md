@@ -1,4 +1,6 @@
 # stop_sign_issue
+This code able to generate stop sign and lane marking at bdd100k dataset images and generate corresponding label.txt for yolo 
+
 ### Step 0 : Get Stop Sign ROI  and  lane marking ROI
 
   You can get stop sign ROI from  coco2017 datasets
