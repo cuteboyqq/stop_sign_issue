@@ -3,7 +3,7 @@
 
 [filter_img.py](./filter_img.py) This code filter size too small ROI , and generate corresponding roi masks
 
-[augment](./augment)
+[augment_of_pure_imgs.py](./augment_of_pure_imgs.py) THis code able to do augment of ROI image and generate corresponding masks of augment images
 
 ### Step 0 : Get Stop Sign ROI  and  lane marking ROI
 
