@@ -1,12 +1,12 @@
 # stop_sign_issue
-## Step 0 : Get Stop Sign ROI  and  lane marking ROI
+### Step 0 : Get Stop Sign ROI  and  lane marking ROI
 
   You can get stop sign ROI from  coco2017 datasets
   
   You can get lane marking ROI from openlanev2 datasets
 
-## Step 1 : Put Stop Sign ROI into bdd100k image , and add stop sign label into yolo.txt
-## Step 2 : Put lane marking ROI into  Step 1 image, and add lane marking label into yolo.txt
+### Step 1 : Put Stop Sign ROI into bdd100k image , and add stop sign label into yolo.txt
+### Step 2 : Put lane marking ROI into  Step 1 image, and add lane marking label into yolo.txt
 
 ![208ad74a-42d618b6](https://github.com/cuteboyqq/stop_sign_issue/assets/58428559/885f59ef-4ce9-4be8-9ae6-cb598441a7e0)
 ![212b5e76-5441e31b](https://github.com/cuteboyqq/stop_sign_issue/assets/58428559/08af7e5c-fc1e-4766-8615-53afc350126d)
