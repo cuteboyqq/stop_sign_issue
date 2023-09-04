@@ -178,13 +178,13 @@ def Generate_StopSign_Img(img_path=None,count=1,args=None):
     left_width = left_background_boundary
     right_width = img.shape[1] - right_background_boundary
     if final_roi_w >= left_width or final_roi_w >= right_width:
-        final_roi_w = int(min(left_width,right_width) * 0.30)
+        final_roi_w = random.randint( int(min(left_width,right_width) * 0.40), int(min(left_width,right_width) * 0.90) )
 
     resize_ratio = float(final_roi_w/roi_w)
     final_roi_h = int(roi.shape[0]*resize_ratio)
     if final_roi_w==0 or final_roi_h==0:
-        final_roi_w = 50
-        final_roi_h = 50
+        final_roi_w = 70
+        final_roi_h = 70
 
     print("final_roi_w:{}".format(final_roi_w))
     print("final_roi_w:{}".format(final_roi_h))
@@ -194,11 +194,13 @@ def Generate_StopSign_Img(img_path=None,count=1,args=None):
         cv2.line(img,(left_background_boundary,0),(left_background_boundary,img.shape[0]-1),(255,0,0),4)
         cv2.line(img,(right_background_boundary,0),(right_background_boundary,img.shape[0]-1),(255,0,0),4)
         cv2.line(img,(left_background_boundary,y),(right_background_boundary,y),(255,0,0),4)
+
+    ## Random Stop Sign x at random left/right side
     random_left_right = random.randint(0,1)
     if random_left_right==0:
-        final_x_stop_sign = int(left_background_boundary)
+        final_x_stop_sign = random.randint(0,int(left_background_boundary))
     else:
-        final_x_stop_sign = int(right_background_boundary)
+        final_x_stop_sign = random.randint(int(right_background_boundary), int(img.shape[1]-1))
     #=========================================================================================================
     method = random.randint(0,1) #Random method opencv/mask
     if method==0:
@@ -211,21 +213,22 @@ def Generate_StopSign_Img(img_path=None,count=1,args=None):
         USE_OPENCV=True
     elif not args.opencv:
         USE_OPENCV=False
-
+    #print("USE_OPENCV : {}".format(USE_OPENCV))
+    #input()
     ##Resize the Stopsign ROI & ROI mask
     if final_roi_w<args.roi_maxwidth and final_roi_w>=64 and final_roi_h<args.roi_maxwidth and final_roi_h>=64:
         roi_resize = cv2.resize(roi,(final_roi_w,final_roi_h),interpolation=cv2.INTER_NEAREST)
         roi_mask = cv2.resize(roi_mask,(final_roi_w,final_roi_h),interpolation=cv2.INTER_NEAREST)
     elif final_roi_w>=args.roi_maxwidth and final_roi_h>=args.roi_maxwidth:
-        roi_resize = cv2.resize(roi,(250,250),interpolation=cv2.INTER_NEAREST)
-        roi_mask = cv2.resize(roi_mask,(250,250),interpolation=cv2.INTER_NEAREST)
+        roi_resize = cv2.resize(roi,(args.roi_maxwidth,args.roi_maxwidth),interpolation=cv2.INTER_NEAREST)
+        roi_mask = cv2.resize(roi_mask,(args.roi_maxwidth,args.roi_maxwidth),interpolation=cv2.INTER_NEAREST)
         final_roi_h=args.roi_maxwidth
         final_roi_w=args.roi_maxwidth
     else:
-        roi_resize = cv2.resize(roi,(50,50),interpolation=cv2.INTER_NEAREST)
-        roi_mask = cv2.resize(roi_mask,(50,50),interpolation=cv2.INTER_NEAREST)
-        final_roi_h=50
-        final_roi_w=50
+        roi_resize = cv2.resize(roi,(64,64),interpolation=cv2.INTER_NEAREST)
+        roi_mask = cv2.resize(roi_mask,(64,64),interpolation=cv2.INTER_NEAREST)
+        final_roi_h=64
+        final_roi_w=64
 
     print("roi_resize:{}".format(roi_resize.shape))
     print("roi_mask:{}".format(roi_mask.shape))
@@ -266,6 +269,16 @@ def Generate_StopSign_Img(img_path=None,count=1,args=None):
         x_c = final_x_stop_sign
         y_c = y
         
+
+        ## keep the road sign at the left/right side of the image
+        if x_c > int(img.shape[1] * 0.28) and x_c < int(img.shape[1] * 0.50):
+            x_c = int(img.shape[1] * 0.28)
+
+        elif x_c < int(img.shape[1] * 0.72) and x_c > int(img.shape[1] * 0.50):
+            x_c = int(img.shape[1] * 0.72)
+            
+
+        ## keep the road sign in the images
         if x_c-int(final_roi_w/2.0)<=0:
             x_c = int(final_roi_w/2.0) + 1
         
@@ -302,7 +315,7 @@ def Generate_StopSign_Img(img_path=None,count=1,args=None):
         label_txt_path=os.path.join(args.label_dir,label_txt)
         if os.path.exists(label_txt_path):
             #input()
-            label = str(9) ## Stop sign label is 9, replace the ttraffic sign label
+            label = str(10) ## No :Stop sign label is 9, replace the traffic sign label , Yes: Add new label 10 for the stop sign~~
             x_cor = final_x_stop_sign
             x = str( int(float( (x_cor) / img.shape[1] )*1000000)/1000000 ) 
             y = str( int(float( (y    ) / img.shape[0] )*1000000)/1000000 )
@@ -325,8 +338,8 @@ def Generate_StopSign_Img(img_path=None,count=1,args=None):
                 with open(label_txt_path,'r') as bdd100k_f:
                     bdd100k_lines = bdd100k_f.readlines()
                     for bdd100k_line in bdd100k_lines:
-                        if bdd100k_line.split(" ")[0]!="9": #if not traffic sign label
-                            f.write(bdd100k_line)
+                        #if bdd100k_line.split(" ")[0]!="9": #if not traffic sign label
+                        f.write(bdd100k_line)
             f.close()
             ## Add the Stop sign label
             with open(save_label_txt_path,'a') as f:
@@ -660,7 +673,7 @@ def Generate_Landmark_Img(img_path=None,
                 if save_txt:
                     os.makedirs("./fake_landmark_image_test/label",exist_ok=True)
                     image, img_name = Analysis_path(img_path)
-                    landmark_label = 10
+                    landmark_label = 11
                     x = float(int((final_x/img.shape[1])*1000000)/1000000)
                     y = float(int((y/img.shape[0])*1000000)/1000000)
                     w = float(int((final_roi_w/img.shape[1])*1000000)/1000000)
@@ -845,7 +858,7 @@ def Generate_Landmark_Img(img_path=None,
                 if save_txt: #save yolo label.txt
                     os.makedirs("./fake_landmark_image_test/label",exist_ok=True)
                     image, img_name = Analysis_path(img_path)
-                    landmark_label = 10
+                    landmark_label = 11
                     x = float(int((final_x/img.shape[1])*1000000)/1000000)
                     y = float(int((y/img.shape[0])*1000000)/1000000)
                     w = float(int((final_roi_w/img.shape[1])*1000000)/1000000)
@@ -1003,7 +1016,6 @@ def get_args_StopSign():
     parser.add_argument('-labeldir','--label-dir',help='yolo label dir',default="/home/ali/Projects/datasets/BDD100K-ori/labels/detection/train")
     parser.add_argument('-drilabeldir','--dri-labeldir',help='drivable label dir', \
                         default="/home/ali/Projects/datasets/BDD100K-ori/labels/drivable/colormaps/train")
-    
     # For StopSign parameter
     parser.add_argument('-roidirstopsign','--roi-dirstopsign',help='roi dir',\
                         default="/home/ali/Projects/GitHub_Code/ali/landmark_issue/datasets/stop_sign_new_v87/roi")
@@ -1011,8 +1023,8 @@ def get_args_StopSign():
     parser.add_argument('-saveimg','--save-img',type=bool,default=True,help='save stopsign fake images')
     parser.add_argument('-savetxt','--save-txt',type=bool,default=True,help='save stopsign yolo.txt')
     parser.add_argument('-showimg','--show-img',type=bool,default=False,help='show images result')
-    parser.add_argument('-numimg','--num-img',type=int,default=20000,help='number of generate fake landmark images')
-    parser.add_argument('-roimaxwidth','--roi-maxwidth',type=int,default=250,help='max width of stop sign ROI')
+    parser.add_argument('-numimg','--num-img',type=int,default=25000,help='number of generate fake landmark images')
+    parser.add_argument('-roimaxwidth','--roi-maxwidth',type=int,default=400,help='max width of stop sign ROI')
     parser.add_argument('-usemask','--use-mask',type=bool,default=True,help='enable(True)/disable(False) mask method to generate landmark or not')
     parser.add_argument('-roimaskdirstopsign','--roi-maskdirstopsign',help='roi mask dir',\
                         default="/home/ali/Projects/GitHub_Code/ali/landmark_issue/datasets/stop_sign_new_v87/mask")
