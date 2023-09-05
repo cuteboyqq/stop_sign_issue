@@ -171,14 +171,15 @@ def Generate_StopSign_Img(img_path=None,count=1,args=None):
 
     roi_w, roi_h = roi.shape[1], roi.shape[0]
     #Set landmark width (initial setting)
-    final_roi_w = int(road_width * 0.30) #Get the final ROI width
+    random_ratio = random.randint(3,20)
+    final_roi_w = int(road_width * random_ratio * 0.1) #Get the final ROI width
 
 
 
     left_width = left_background_boundary
     right_width = img.shape[1] - right_background_boundary
     if final_roi_w >= left_width or final_roi_w >= right_width:
-        final_roi_w = random.randint( int(min(left_width,right_width) * 0.40), int(min(left_width,right_width) * 0.90) )
+        final_roi_w = random.randint( int(min(left_width,right_width) * 0.40), int(min(left_width,right_width) * 1.50) )
 
     resize_ratio = float(final_roi_w/roi_w)
     final_roi_h = int(roi.shape[0]*resize_ratio)
@@ -1023,7 +1024,7 @@ def get_args_StopSign():
     parser.add_argument('-saveimg','--save-img',type=bool,default=True,help='save stopsign fake images')
     parser.add_argument('-savetxt','--save-txt',type=bool,default=True,help='save stopsign yolo.txt')
     parser.add_argument('-showimg','--show-img',type=bool,default=False,help='show images result')
-    parser.add_argument('-numimg','--num-img',type=int,default=25000,help='number of generate fake landmark images')
+    parser.add_argument('-numimg','--num-img',type=int,default=5000,help='number of generate fake landmark images')
     parser.add_argument('-roimaxwidth','--roi-maxwidth',type=int,default=400,help='max width of stop sign ROI')
     parser.add_argument('-usemask','--use-mask',type=bool,default=True,help='enable(True)/disable(False) mask method to generate landmark or not')
     parser.add_argument('-roimaskdirstopsign','--roi-maskdirstopsign',help='roi mask dir',\
@@ -1046,7 +1047,7 @@ def get_args_RoadSign():
     parser.add_argument('-savecolormap','--save-colormap',action='store_true',help='save generate semantic segment colormaps')
     parser.add_argument('-savemask','--save-mask',action='store_true',help='save generate semantic segment train masks')
     parser.add_argument('-savetxt','--save-txt',action='store_true',help='save landmark fake label.txt in yolo format cxywh')
-    parser.add_argument('-numimg','--num-img',type=int,default=30000,help='number of generate fake landmark images')
+    parser.add_argument('-numimg','--num-img',type=int,default=5000,help='number of generate fake landmark images')
     parser.add_argument('-useopencvratio','--use-opencvratio',type=float,default=0.50,help='ratio of using opencv method to generate landmark images')
     parser.add_argument('-usemask','--use-mask',type=bool,default=True,help='use mask method to generate landmark or not')
     parser.add_argument('-show','--show',action='store_true',help='show images result')

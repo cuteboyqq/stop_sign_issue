@@ -23,8 +23,8 @@ def FilterImg(img_dir,
         img = cv2.imread(img_path)
         h,w = img.shape[0],img.shape[1]
         print("{}:{}".format(c,img_path))
-        if h*w < 60*120 or h/w < 0.15 or h/w > 6:
-            print("too small (<40*40 pixels)")
+        if h*w < 60*60 or h/w < 0.10 or h/w > 10:
+            print("too small (<60*60 pixels) or ratio is <0.10 or <10.0, skip this ROI")
         else:
             #roi_dir = os.path.join(save_dir,"roi")
             #shutil.copy(img_path,roi_dir)
@@ -137,7 +137,7 @@ def FilterImg(img_dir,
 
 if __name__=="__main__":
     img_dir = "./stop_sign"
-    save_dir = "./datasets/stop_sign_new_v87"
+    save_dir = "./datasets/stop_sign_new_v5487"
     stop_sign = True
     FilterImg(img_dir,
               save_dir, 
