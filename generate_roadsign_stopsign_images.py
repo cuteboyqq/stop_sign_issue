@@ -95,13 +95,47 @@ def Generate_StopSign_Img(img_path=None,count=1,args=None):
 
     x = random.randint(int(w*3/10),int(w*7/10))
     co = 1
-    while(label_mask[y][x]==0):
+    #initail parameter
+    overlap_with_car = True
+    HVAE_LABEL_TXT=True
+    #Get the loaction (x,y) to put stop sign ROI into bdd100k image
+    X_TH=100
+    Y_TH=100
+    while(label_mask[y][x]==0 or overlap_with_car):
+        overlap_with_car=False
+        ## open label.txt
+        label_txt = img_name + ".txt"
+        label_txt_path=os.path.join(args.label_dir,label_txt)
+        if os.path.exists(label_txt_path):
+            HVAE_LABEL_TXT=True
+            with open(label_txt_path,'r') as f:
+                ## Start parsing label.txt
+                lines = f.readlines()
+                for line in lines:
+                    label_bdd=int(line.split(" ")[0])
+                    x_bdd=float(line.split(" ")[1])*img.shape[1]
+                    y_bdd=float(line.split(" ")[2])*img.shape[0]
+                    w_bdd=float(line.split(" ")[3])*img.shape[1]
+                    h_bdd=float(line.split(" ")[4])*img.shape[0]
+
+                    ## if (x,y) is close to another label BB, do not use
+                    if abs(x_bdd-x)<X_TH and abs(y_bdd-y)<Y_TH:
+                        overlap_with_car=True
+        else:
+            HVAE_LABEL_TXT=False
+            break
+                
+
+
         if vanish_y < carhood_y:
             y = random.randint(int(vanish_y),carhood_y-1) # Get the final  ROI y
         else:
             y = random.randint(int(img.shape[0]/2.0),int(img.shape[0]*5.0/6.0)) # Get the final  ROI y
         x = random.randint(int(w*3/10),int(w*7/10)) # Get the final  ROI x
         print("x in at background, re-random again~")
+
+        
+
         co+=1
         if co==150:
             #IS_FAILED = True
@@ -1024,7 +1058,7 @@ def get_args_StopSign():
     parser.add_argument('-saveimg','--save-img',type=bool,default=True,help='save stopsign fake images')
     parser.add_argument('-savetxt','--save-txt',type=bool,default=True,help='save stopsign yolo.txt')
     parser.add_argument('-showimg','--show-img',type=bool,default=False,help='show images result')
-    parser.add_argument('-numimg','--num-img',type=int,default=5000,help='number of generate fake landmark images')
+    parser.add_argument('-numimg','--num-img',type=int,default=8000,help='number of generate fake landmark images')
     parser.add_argument('-roimaxwidth','--roi-maxwidth',type=int,default=400,help='max width of stop sign ROI')
     parser.add_argument('-usemask','--use-mask',type=bool,default=True,help='enable(True)/disable(False) mask method to generate landmark or not')
     parser.add_argument('-roimaskdirstopsign','--roi-maskdirstopsign',help='roi mask dir',\
@@ -1047,7 +1081,7 @@ def get_args_RoadSign():
     parser.add_argument('-savecolormap','--save-colormap',action='store_true',help='save generate semantic segment colormaps')
     parser.add_argument('-savemask','--save-mask',action='store_true',help='save generate semantic segment train masks')
     parser.add_argument('-savetxt','--save-txt',action='store_true',help='save landmark fake label.txt in yolo format cxywh')
-    parser.add_argument('-numimg','--num-img',type=int,default=5000,help='number of generate fake landmark images')
+    parser.add_argument('-numimg','--num-img',type=int,default=8000,help='number of generate fake landmark images')
     parser.add_argument('-useopencvratio','--use-opencvratio',type=float,default=0.50,help='ratio of using opencv method to generate landmark images')
     parser.add_argument('-usemask','--use-mask',type=bool,default=True,help='use mask method to generate landmark or not')
     parser.add_argument('-show','--show',action='store_true',help='show images result')
